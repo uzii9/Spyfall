@@ -115,6 +115,12 @@ function Home() {
     }
   };
 
+  // Handle room code input with proper sanitization for mobile browsers
+  const handleRoomCodeChange = (e) => {
+    const value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    setRoomCode(value);
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -228,11 +234,16 @@ function Home() {
                   <input
                     type="text"
                     value={roomCode}
-                    onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
+                    onChange={handleRoomCodeChange}
                     placeholder="Enter room code"
                     className="input-field w-full text-center text-lg font-mono tracking-wider"
                     maxLength={6}
                     disabled={state.loading}
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="characters"
+                    spellCheck="false"
+                    inputMode="text"
                   />
                 </div>
                 
