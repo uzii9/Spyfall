@@ -134,8 +134,16 @@ class Game {
       throw new Error('Game is not in playing state');
     }
     
+    console.log('=== SPY GUESS SUBMITTED ===');
+    console.log('Spy player ID:', playerId);
+    console.log('Guessed location:', guessedLocation);
+    console.log('Actual location:', this.location);
+    console.log('Guess is correct:', guessedLocation === this.location);
+    
     this.spyGuess = guessedLocation;
     this.endGame();
+    
+    console.log('Game ended. Winner:', this.winner);
   }
 
   startVoting() {
@@ -148,12 +156,26 @@ class Game {
   }
 
   endGame() {
+    console.log('=== ENDING GAME ===');
+    console.log('Spy guess:', this.spyGuess);
+    console.log('Actual location:', this.location);
+    console.log('Votes count:', this.votes.size);
+    
     this.gameState = 'ended';
     
     // Determine winner
-    if (this.spyGuess === this.location) {
-      this.winner = 'spy';
+    if (this.spyGuess !== null) {
+      // Spy made a guess - check if it's correct
+      console.log('Spy made a guess - determining winner based on guess accuracy');
+      if (this.spyGuess === this.location) {
+        console.log('Spy guessed correctly - spy wins');
+        this.winner = 'spy';
+      } else {
+        console.log('Spy guessed incorrectly - innocent players win');
+        this.winner = 'innocent';
+      }
     } else if (this.votes.size > 0) {
+      console.log('No spy guess - determining winner based on votes');
       // Count votes
       const voteCount = new Map();
       for (const votedForId of this.votes.values()) {
@@ -170,15 +192,20 @@ class Game {
         }
       }
       
+      console.log('Most voted player:', mostVotedPlayer, 'Spy ID:', this.spyId);
       if (mostVotedPlayer === this.spyId) {
+        console.log('Players voted for the spy - innocent players win');
         this.winner = 'innocent';
       } else {
+        console.log('Players voted for wrong person - spy wins');
         this.winner = 'spy';
       }
     } else {
-      // Time ran out, spy wins by default
+      console.log('No spy guess and no votes - time ran out, spy wins');
       this.winner = 'spy';
     }
+    
+    console.log('Final winner:', this.winner);
   }
 
   getGameState() {
