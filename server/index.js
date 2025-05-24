@@ -25,20 +25,7 @@ const gameManager = new GameManager();
 gameManager.startCleanup();
 
 // API Routes
-app.post('/api/create-room', (req, res) => {
-  try {
-    const game = gameManager.createGame();
-    res.json({ 
-      success: true, 
-      roomCode: game.roomCode 
-    });
-  } catch (error) {
-    res.status(500).json({ 
-      success: false, 
-      error: error.message 
-    });
-  }
-});
+app.post('/api/create-room', (req, res) => {  try {    const { gameDurationMinutes = 6 } = req.body;    const game = gameManager.createGame(gameDurationMinutes);    res.json({       success: true,       roomCode: game.roomCode,      gameDurationMinutes: game.gameDurationMinutes    });  } catch (error) {    res.status(500).json({       success: false,       error: error.message     });  }});
 
 app.post('/api/validate-room', (req, res) => {
   try {
@@ -143,15 +130,7 @@ io.on('connection', (socket) => {
         gameState: game.getGameState()
       });
       
-      // Start game timer
-      setTimeout(() => {
-        if (game.gameState === 'playing') {
-          game.startVoting();
-          io.to(playerInfo.roomCode).emit('voting-started', {
-            gameState: game.getGameState()
-          });
-        }
-      }, game.gameDuration);
+            // Start game timer (only if not unlimited)      if (game.gameDuration !== null) {        setTimeout(() => {          if (game.gameState === 'playing') {            game.startVoting();            io.to(playerInfo.roomCode).emit('voting-started', {              gameState: game.getGameState()            });          }        }, game.gameDuration);      }
       
     } catch (error) {
       socket.emit('error', { message: error.message });

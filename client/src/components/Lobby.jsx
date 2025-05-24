@@ -41,21 +41,7 @@ function Lobby() {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">Game Lobby</h1>
-          <div className="flex items-center justify-center space-x-4">
-            <div className="card inline-block">
-              <span className="text-sm text-white/60 mr-2">Room Code:</span>
-              <span className="text-2xl font-mono font-bold tracking-wider">
-                {state.roomCode}
-              </span>
-            </div>
-            <button
-              onClick={() => navigator.clipboard.writeText(state.roomCode)}
-              className="btn-secondary py-2 px-3 text-sm"
-              title="Copy room code"
-            >
-              📋 Copy
-            </button>
-          </div>
+                    <div className="flex items-center justify-center space-x-4">            <div className="card inline-block">              <span className="text-sm text-white/60 mr-2">Room Code:</span>              <span className="text-2xl font-mono font-bold tracking-wider">                {state.roomCode}              </span>            </div>            <div className="card inline-block">              <span className="text-sm text-white/60 mr-2">Duration:</span>              <span className="text-lg font-semibold">                {state.gameDurationMinutes === 'unlimited' ? 'Unlimited' : `${state.gameDurationMinutes}min`}              </span>            </div>            <button              onClick={() => navigator.clipboard.writeText(state.roomCode)}              className="btn-secondary py-2 px-3 text-sm"              title="Copy room code"            >              📋 Copy            </button>          </div>
         </div>
 
         {/* Players List */}

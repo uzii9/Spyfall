@@ -2,14 +2,15 @@ const { v4: uuidv4 } = require('uuid');
 const LOCATIONS = require('../data/locations');
 
 class Game {
-  constructor(roomCode) {
+  constructor(roomCode, gameDurationMinutes = 6) {
     this.roomCode = roomCode;
     this.players = new Map(); // playerId -> player object
     this.gameState = 'waiting'; // waiting, playing, voting, ended
     this.location = null;
     this.spyId = null;
     this.gameStartTime = null;
-    this.gameDuration = 6 * 60 * 1000; // 6 minutes in milliseconds
+    this.gameDuration = gameDurationMinutes === 'unlimited' ? null : gameDurationMinutes * 60 * 1000; // duration in milliseconds
+    this.gameDurationMinutes = gameDurationMinutes; // store original duration
     this.votes = new Map(); // playerId -> votedForPlayerId
     this.spyGuess = null;
     this.winner = null;
@@ -178,6 +179,7 @@ class Game {
         isReady: p.isReady
       })),
       timeRemaining: this.getTimeRemaining(),
+      gameDurationMinutes: this.gameDurationMinutes,
       winner: this.winner,
       spyId: this.gameState === 'ended' ? this.spyId : null,
       location: this.gameState === 'ended' ? this.location : null,
@@ -187,8 +189,8 @@ class Game {
   }
 
   getTimeRemaining() {
-    if (!this.gameStartTime || this.gameState !== 'playing') {
-      return 0;
+    if (!this.gameStartTime || this.gameState !== 'playing' || this.gameDuration === null) {
+      return this.gameDuration; // Return null for unlimited, or full duration if not started
     }
     
     const elapsed = new Date() - this.gameStartTime;
@@ -196,6 +198,7 @@ class Game {
   }
 
   isTimeUp() {
+    if (this.gameDuration === null) return false; // Unlimited game
     return this.getTimeRemaining() === 0;
   }
 }

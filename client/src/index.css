@@ -33,6 +33,48 @@
     @apply bg-white/20 border border-white/30 rounded-lg px-4 py-3 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all duration-200;
   }
   
+  .select-field {
+    @apply bg-white/20 border border-white/30 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all duration-200 cursor-pointer;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.8)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1em;
+  }
+  
+  .select-field:hover {
+    @apply bg-white/30 border-white/40;
+  }
+  
+  .select-field:focus {
+    @apply bg-white/30 shadow-xl;
+  }
+  
+  .select-field option {
+    background-color: #1e40af !important;
+    color: white !important;
+    padding: 8px 12px;
+    font-weight: 500;
+  }
+  
+  .select-field option:hover {
+    background-color: #1d4ed8 !important;
+  }
+  
+  .select-field option:checked,
+  .select-field option:focus {
+    background-color: #2563eb !important;
+    color: white !important;
+  }
+  
+  .select-field:disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
+  
   .game-timer {
     @apply text-4xl font-bold text-center p-4 bg-gradient-to-r from-danger-500 to-orange-500 rounded-lg shadow-lg;
   }

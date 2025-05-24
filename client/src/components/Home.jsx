@@ -1,15 +1,23 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useGame } from '../context/GameContext';
-import apiService from '../services/api';
-import socketService from '../services/socket';
+import React, { useState } from 'react';import { useNavigate } from 'react-router-dom';import { useGame } from '../context/GameContext';import apiService from '../services/api';import socketService from '../services/socket';import CustomSelect from './CustomSelect';
 
 function Home() {
   const [playerName, setPlayerName] = useState('');
   const [roomCode, setRoomCode] = useState('');
   const [isJoining, setIsJoining] = useState(false);
+  const [gameDuration, setGameDuration] = useState(6);
+  const [customDuration, setCustomDuration] = useState('');
   const navigate = useNavigate();
   const { state, actions } = useGame();
+
+  const durationOptions = [
+    { value: 6, label: '6 minutes' },
+    { value: 7, label: '7 minutes' },
+    { value: 8, label: '8 minutes' },
+    { value: 9, label: '9 minutes' },
+    { value: 10, label: '10 minutes' },
+    { value: 'unlimited', label: 'Unlimited' },
+    { value: 'custom', label: 'Custom' }
+  ];
 
   const handleCreateRoom = async () => {
     if (!playerName.trim()) {
@@ -17,10 +25,22 @@ function Home() {
       return;
     }
 
+    let duration = gameDuration;
+    
+    // Handle custom duration
+    if (gameDuration === 'custom') {
+      const customValue = parseInt(customDuration);
+      if (isNaN(customValue) || customValue < 1 || customValue > 60) {
+        actions.setError('Custom duration must be between 1 and 60 minutes');
+        return;
+      }
+      duration = customValue;
+    }
+
     try {
       actions.setLoading(true);
       await socketService.connect();
-      const response = await apiService.createRoom();
+      const response = await apiService.createRoom(duration);
       
       // Join the created room
       socketService.joinRoom(response.roomCode, playerName.trim());
@@ -56,6 +76,13 @@ function Home() {
       navigate('/lobby');
     } catch (error) {
       actions.setError(error.message);
+    }
+  };
+
+  const handleDurationChange = (value) => {
+    setGameDuration(value);
+    if (value !== 'custom') {
+      setCustomDuration('');
     }
   };
 
@@ -109,9 +136,36 @@ function Home() {
             {!isJoining ? (
               /* Create Room Mode */
               <div className="space-y-4">
+                {/* Game Duration Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-white/90 mb-2">
+                    Game Duration
+                  </label>
+                                                                        <CustomSelect                    value={gameDuration}                    onChange={handleDurationChange}                    options={durationOptions}                    disabled={state.loading}                    className="w-full"                  />
+                </div>
+
+                {/* Custom Duration Input */}
+                {gameDuration === 'custom' && (
+                  <div>
+                    <label className="block text-sm font-medium text-white/90 mb-2">
+                      Custom Duration (minutes)
+                    </label>
+                    <input
+                      type="number"
+                      value={customDuration}
+                      onChange={(e) => setCustomDuration(e.target.value)}
+                      placeholder="Enter minutes (1-60)"
+                      className="input-field w-full"
+                      min="1"
+                      max="60"
+                      disabled={state.loading}
+                    />
+                  </div>
+                )}
+                
                 <button
                   onClick={handleCreateRoom}
-                  disabled={state.loading || !playerName.trim()}
+                  disabled={state.loading || !playerName.trim() || (gameDuration === 'custom' && !customDuration.trim())}
                   className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {state.loading ? 'Creating Room...' : 'Create New Game'}

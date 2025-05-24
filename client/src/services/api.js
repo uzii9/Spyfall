@@ -1,21 +1,7 @@
 const API_BASE_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
 
 class ApiService {
-  async createRoom() {
-    const response = await fetch(`${API_BASE_URL}/api/create-room`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    
-    const data = await response.json();
-    if (!data.success) {
-      throw new Error(data.error || 'Failed to create room');
-    }
-    
-    return data;
-  }
+    async createRoom(gameDurationMinutes = 6) {    const response = await fetch(`${API_BASE_URL}/api/create-room`, {      method: 'POST',      headers: {        'Content-Type': 'application/json',      },      body: JSON.stringify({ gameDurationMinutes }),    });        const data = await response.json();    if (!data.success) {      throw new Error(data.error || 'Failed to create room');    }        return data;  }
 
   async validateRoom(roomCode) {
     const response = await fetch(`${API_BASE_URL}/api/validate-room`, {

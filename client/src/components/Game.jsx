@@ -12,6 +12,7 @@ function Game() {
   const [selectedLocation, setSelectedLocation] = useState('');
   const [selectedVote, setSelectedVote] = useState('');
   const [timeLeft, setTimeLeft] = useState(0);
+  const [crossedOutLocations, setCrossedOutLocations] = useState(new Set());
 
   useEffect(() => {
     // Redirect if not in game
@@ -39,16 +40,7 @@ function Game() {
     loadLocations();
   }, [state.roomCode, state.currentPlayer, state.gameState, navigate]);
 
-  // Timer countdown
-  useEffect(() => {
-    if (state.gameState === 'playing' && state.timeRemaining > 0) {
-      const timer = setInterval(() => {
-        setTimeLeft(Math.max(0, state.timeRemaining - (Date.now() - new Date().getTime())));
-      }, 100);
-
-      return () => clearInterval(timer);
-    }
-  }, [state.timeRemaining, state.gameState]);
+    // Timer countdown  useEffect(() => {    if (state.gameState === 'playing') {      const timer = setInterval(() => {        if (state.gameDurationMinutes === 'unlimited') {          setTimeLeft(null);        } else {          // Calculate time remaining from server data          setTimeLeft(state.timeRemaining || 0);        }      }, 1000);      return () => clearInterval(timer);    }  }, [state.gameState, state.timeRemaining, state.gameDurationMinutes]);
 
   const formatTime = (milliseconds) => {
     const minutes = Math.floor(milliseconds / 60000);
@@ -73,6 +65,18 @@ function Game() {
     socketService.forceVoting();
   };
 
+  const toggleLocationCrossOut = (locationName) => {
+    setCrossedOutLocations(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(locationName)) {
+        newSet.delete(locationName);
+      } else {
+        newSet.add(locationName);
+      }
+      return newSet;
+    });
+  };
+
   if (!state.playerRole) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -95,11 +99,7 @@ function Game() {
               <span className="font-mono font-bold">{state.roomCode}</span>
             </div>
             
-            {state.gameState === 'playing' && (
-              <div className="game-timer">
-                {formatTime(state.timeRemaining || 0)}
-              </div>
-            )}
+                        {state.gameState === 'playing' && (              <div className="game-timer">                {state.gameDurationMinutes === 'unlimited'                   ? '∞ Unlimited'                   : formatTime(state.timeRemaining || 0)                }              </div>            )}
           </div>
         </div>
 
@@ -109,23 +109,63 @@ function Game() {
             <h2 className="text-xl font-semibold text-white mb-4">Your Role</h2>
             
             {state.playerRole.isSpy ? (
-              <div className="text-center">
-                <div className="spy-indicator mb-4">
-                  🕵️ YOU ARE THE SPY
+              <div>
+                <div className="text-center mb-6">
+                  <div className="spy-indicator mb-4">
+                    🕵️ YOU ARE THE SPY
+                  </div>
+                  <p className="text-white/80 mb-4">
+                    You don't know the location. Try to figure it out by asking clever questions 
+                    without revealing that you're the spy!
+                  </p>
+                  
+                  {state.gameState === 'playing' && (
+                    <button
+                      onClick={() => setShowSpyGuess(true)}
+                      className="btn-primary w-full"
+                    >
+                      🎯 Guess Location
+                    </button>
+                  )}
                 </div>
-                <p className="text-white/80 mb-4">
-                  You don't know the location. Try to figure it out by asking clever questions 
-                  without revealing that you're the spy!
-                </p>
-                
-                {state.gameState === 'playing' && (
-                  <button
-                    onClick={() => setShowSpyGuess(true)}
-                    className="btn-primary w-full"
-                  >
-                    🎯 Guess Location
-                  </button>
-                )}
+
+                {/* Location Tracker for Spy */}
+                <div className="bg-white/10 rounded-lg p-4">
+                  <div className="flex justify-between items-center mb-3">
+                    <h4 className="text-sm font-semibold text-white/90 flex items-center">
+                      📍 Location Tracker
+                      <span className="text-xs text-white/60 ml-2">(Click to cross out)</span>
+                    </h4>
+                    {crossedOutLocations.size > 0 && (
+                      <button
+                        onClick={() => setCrossedOutLocations(new Set())}
+                        className="text-xs text-red-400 hover:text-red-300 underline"
+                      >
+                        Clear All
+                      </button>
+                    )}
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-1 text-xs mb-3">
+                    {locations.map((location) => (
+                      <button
+                        key={location}
+                        onClick={() => toggleLocationCrossOut(location)}
+                        className={`text-left p-2 rounded transition-all ${
+                          crossedOutLocations.has(location)
+                            ? 'bg-red-600/30 text-red-300 line-through opacity-50'
+                            : 'bg-white/10 text-white hover:bg-white/20'
+                        }`}
+                      >
+                        {location}
+                      </button>
+                    ))}
+                  </div>
+                  
+                  <p className="text-xs text-white/50">
+                    {crossedOutLocations.size}/{locations.length} locations ruled out
+                  </p>
+                </div>
               </div>
             ) : (
               <div className="text-center">
@@ -256,6 +296,8 @@ function Game() {
                   className={`p-3 rounded-lg text-left transition-all ${
                     selectedLocation === location
                       ? 'bg-primary-600 text-white'
+                      : crossedOutLocations.has(location)
+                      ? 'bg-red-600/30 text-red-300 line-through opacity-50'
                       : 'bg-white/10 text-white hover:bg-white/20'
                   }`}
                 >

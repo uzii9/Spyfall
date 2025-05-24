@@ -21,12 +21,7 @@ class GameManager {
     return code;
   }
 
-  createGame() {
-    const roomCode = this.generateRoomCode();
-    const game = new Game(roomCode);
-    this.games.set(roomCode, game);
-    return game;
-  }
+  createGame(gameDurationMinutes = 6) {    const roomCode = this.generateRoomCode();    const game = new Game(roomCode, gameDurationMinutes);    this.games.set(roomCode, game);    return game;  }
 
   getGame(roomCode) {
     return this.games.get(roomCode);
