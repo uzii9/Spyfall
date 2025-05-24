@@ -15,5 +15,11 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false
+  },
+  define: {
+    // Set the server URL for production builds
+    'import.meta.env.VITE_SERVER_URL': JSON.stringify(
+      process.env.VITE_SERVER_URL || 'https://spyfall-uvdi.onrender.com'
+    )
   }
 })

@@ -14,12 +14,13 @@ const server = http.createServer(app);
 const allowedOrigins = [
   'http://localhost:5173', // Local development
   'http://localhost:3000', // Alternative local port
-  process.env.CLIENT_URL   // Production client URL
+  'https://spy-fall.online', // Production frontend domain
+  process.env.CLIENT_URL   // Additional production client URL (if set)
 ].filter(Boolean); // Remove undefined values
 
 const io = socketIo(server, {
   cors: {
-    origin: process.env.NODE_ENV === 'production' ? allowedOrigins : true,
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
     credentials: true
   }
@@ -27,7 +28,7 @@ const io = socketIo(server, {
 
 // Middleware
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' ? allowedOrigins : true,
+  origin: allowedOrigins,
   credentials: true
 }));
 app.use(express.json());

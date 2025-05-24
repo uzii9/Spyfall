@@ -1,4 +1,20 @@
-const API_BASE_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
+// Determine the server URL based on environment
+const getServerUrl = () => {
+  // Check for explicit environment variable first
+  if (import.meta.env.VITE_SERVER_URL) {
+    return import.meta.env.VITE_SERVER_URL;
+  }
+  
+  // For production builds, use the production server
+  if (import.meta.env.PROD) {
+    return 'https://spyfall-uvdi.onrender.com';
+  }
+  
+  // Default to localhost for development
+  return 'http://localhost:3001';
+};
+
+const API_BASE_URL = getServerUrl();
 
 console.log('🔗 API Base URL configured as:', API_BASE_URL);
 
