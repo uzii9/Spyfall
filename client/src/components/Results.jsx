@@ -54,9 +54,7 @@ function Results() {
   const voteResults = getVoteResults();
   const isSpyWin = state.winner === 'spy';
 
-  return (
-    <div className="min-h-screen p-4">
-      <div className="max-w-2xl mx-auto">
+    return (    <div className="min-h-screen p-4">      {/* Subtle Corner Watermark */}      <div className="fixed top-4 right-4 z-10">        <div className="flex items-center space-x-1 px-2 py-1 rounded-full bg-black/20 backdrop-blur-sm border border-white/10">          <span className="text-white/30 text-xs">by</span>          <span className="text-yellow-400/80 text-xs font-medium">uzi9</span>        </div>      </div>            <div className="max-w-2xl mx-auto">
         {/* Game Over Header */}
         <div className="text-center mb-8">
           <h1 className="text-5xl font-bold text-white mb-4">Game Over!</h1>

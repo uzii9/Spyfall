@@ -276,6 +276,8 @@ function Home() {
           <p>One player is the spy, everyone else gets the same location.</p>
           <p>Ask questions to find the spy, but don't be too obvious!</p>
         </div>
+
+                        {/* Game Attribution */}        <div className="mt-6 text-center space-y-3">          <div className="text-xs text-white/50 leading-relaxed">            <p>Spyfall is designed by <span className="text-white/70 font-medium">Alexandr Ushan</span></p>            <p>and published by <span className="text-white/70 font-medium">Hobby World</span></p>          </div>                    {/* Creator Watermark */}          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm">            <span className="text-white/40 text-xs">created by</span>            <span className="text-yellow-400 text-sm font-semibold tracking-wide">uzi9</span>            <span className="text-yellow-400/60 text-xs">🕵️</span>          </div>        </div>
       </div>
     </div>
   );
