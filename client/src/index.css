@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gradient-to-br from-primary-900 via-primary-800 to-primary-700 min-h-screen text-white font-sans;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105;
+  }
+  
+  .btn-secondary {
+    @apply bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl;
+  }
+  
+  .btn-danger {
+    @apply bg-danger-600 hover:bg-danger-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl;
+  }
+  
+  .btn-success {
+    @apply bg-success-600 hover:bg-success-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl;
+  }
+  
+  .card {
+    @apply bg-white/10 backdrop-blur-md rounded-xl p-6 shadow-xl border border-white/20;
+  }
+  
+  .input-field {
+    @apply bg-white/20 border border-white/30 rounded-lg px-4 py-3 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all duration-200;
+  }
+  
+  .game-timer {
+    @apply text-4xl font-bold text-center p-4 bg-gradient-to-r from-danger-500 to-orange-500 rounded-lg shadow-lg;
+  }
+  
+  .spy-indicator {
+    @apply bg-gradient-to-r from-danger-600 to-danger-800 text-white px-4 py-2 rounded-full font-bold text-sm animate-pulse-slow;
+  }
+  
+  .innocent-indicator {
+    @apply bg-gradient-to-r from-success-600 to-success-800 text-white px-4 py-2 rounded-full font-bold text-sm;
+  }
+}
