@@ -10,7 +10,7 @@ services:
       - key: NODE_ENV
         value: production
       - key: CLIENT_URL
-        value: https://spyfall-client.onrender.com
+        value: https://spyfall-client-w95o.onrender.com
         
   - type: web
     name: spyfall-client
@@ -21,4 +21,4 @@ services:
     staticPublishPath: ./client/dist
     envVars:
       - key: VITE_SERVER_URL
-        value: https://spyfall-uvdi.onrender.com 
+        value: https://spyfall-uvdi.onrender.com
