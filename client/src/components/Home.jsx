@@ -137,9 +137,23 @@ function Home() {
               <h2 className="text-xl text-white/80 mb-2">
                 Free Multiplayer Social Deduction Game
               </h2>
-              <p className="text-white/60 text-sm">
+              <p className="text-white/60 text-sm mb-3">
                 Play the ultimate spy game online with friends - no download required!
               </p>
+              
+             
+              <div className="inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-gradient-to-r from-yellow-400/10 to-orange-500/10 border border-yellow-400/20 backdrop-blur-sm mb-2">
+                <span className="text-white/70 text-sm">created by</span>
+                <a 
+                  href="https://www.linkedin.com/in/uzair-kamran-76a174266/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-yellow-400 text-lg font-bold tracking-wide hover:text-yellow-300 transition-colors duration-200 hover:underline"
+                >
+                  uzi9
+                </a>
+                <span className="text-yellow-400/70 text-sm">🕵️</span>
+              </div>
             </header>
 
             {/* Error Message */}
@@ -410,18 +424,9 @@ function Home() {
           </div>
 
           {/* Game Attribution */}
-          <div className="space-y-3">
-            <div className="text-xs text-white/50 leading-relaxed">
-              <p>Original Spyfall game designed by <span className="text-white/70 font-medium">Alexandr Ushan</span></p>
-              <p>and published by <span className="text-white/70 font-medium">Hobby World</span></p>
-            </div>
-            
-            {/* Creator Watermark */}
-            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm">
-              <span className="text-white/40 text-xs">online version by</span>
-              <span className="text-yellow-400 text-sm font-semibold tracking-wide">uzi9</span>
-              <span className="text-yellow-400/60 text-xs">🕵️</span>
-            </div>
+          <div className="text-xs text-white/50 leading-relaxed">
+            <p>Original Spyfall game designed by <span className="text-white/70 font-medium">Alexandr Ushan</span></p>
+            <p>and published by <span className="text-white/70 font-medium">Hobby World</span></p>
           </div>
         </footer>
       </div>
