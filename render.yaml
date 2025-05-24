@@ -21,4 +21,4 @@ services:
     staticPublishPath: ./client/dist
     envVars:
       - key: VITE_SERVER_URL
-        value: https://spyfall-uvdi.onrender.com
+        value: https://spyfall-uvdi.onrender.com/
