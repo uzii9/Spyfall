@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGame } from '../context/GameContext';
 import socketService from '../services/socket';
@@ -7,21 +7,28 @@ function Results() {
   const navigate = useNavigate();
   const { state, actions } = useGame();
 
+  // Navigate to lobby if game state changes to waiting (after reset)
+  useEffect(() => {
+    if (state.gameState === 'waiting' && state.roomCode && state.currentPlayer) {
+      console.log('Game reset detected, navigating to lobby');
+      navigate('/lobby');
+    }
+  }, [state.gameState, state.roomCode, state.currentPlayer, navigate]);
+
   if (state.gameState !== 'ended') {
     navigate('/');
     return null;
   }
 
   const handlePlayAgain = () => {
-    navigate('/lobby');
-    actions.resetGame();
+    console.log('Play again button clicked');
+    // Reset the game on the server first, then navigate
+    socketService.resetGame();
+    // Navigation will happen automatically when we receive the game-reset event
+    // and the game state changes to 'waiting'
   };
 
-  const handleLeaveGame = () => {
-    socketService.disconnect();
-    navigate('/');
-    actions.resetGame();
-  };
+    const handleLeaveGame = () => {    socketService.disconnect();    actions.leaveGame();    navigate('/');  };
 
   const getSpyPlayer = () => {
     return state.players.find(p => p.id === state.spyId);

@@ -9,16 +9,37 @@ const LOCATIONS = require('./data/locations');
 
 const app = express();
 const server = http.createServer(app);
+
+// Configure CORS for production
+const allowedOrigins = [
+  'http://localhost:5173', // Local development
+  'http://localhost:3000', // Alternative local port
+  process.env.CLIENT_URL   // Production client URL
+].filter(Boolean); // Remove undefined values
+
 const io = socketIo(server, {
   cors: {
-    origin: process.env.NODE_ENV === 'production' ? false : "http://localhost:5173",
-    methods: ["GET", "POST"]
+    origin: process.env.NODE_ENV === 'production' ? allowedOrigins : true,
+    methods: ["GET", "POST"],
+    credentials: true
   }
 });
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' ? allowedOrigins : true,
+  credentials: true
+}));
 app.use(express.json());
+
+// Health check endpoint
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'Spyfall Server is running!', 
+    status: 'healthy',
+    timestamp: new Date().toISOString()
+  });
+});
 
 // Initialize game manager
 const gameManager = new GameManager();
@@ -103,17 +124,34 @@ io.on('connection', (socket) => {
 
   socket.on('start-game', () => {
     try {
+      console.log('=== START GAME EVENT RECEIVED ===');
       const playerInfo = gameManager.getPlayerInfo(socket.id);
+      console.log('Player info:', playerInfo);
       if (!playerInfo) {
         return socket.emit('error', { message: 'Player not found' });
       }
       
       const game = gameManager.getGame(playerInfo.roomCode);
+      console.log('Game found:', !!game);
+      console.log('Game state before startGame():', game?.gameState);
       if (!game) {
         return socket.emit('error', { message: 'Game not found' });
       }
       
+      // Check if player is the host (first player in the game)
+      const players = game.getPlayerList();
+      const isHost = players.length > 0 && players[0].id === playerInfo.playerId;
+      console.log('Is host:', isHost);
+      console.log('Players count:', players.length);
+      console.log('Can start game:', game.canStartGame());
+      
+      if (!isHost) {
+        return socket.emit('error', { message: 'Only the host can start the game' });
+      }
+      
+      console.log('Calling game.startGame()...');
       game.startGame();
+      console.log('Game state after startGame():', game.gameState);
       
       // Send each player their role
       for (const [playerId, player] of game.players.entries()) {
@@ -125,14 +163,53 @@ io.on('connection', (socket) => {
         }
       }
       
+      // Get game state before sending
+      const gameStateData = game.getGameState();
+      console.log('Game state data being sent:', gameStateData);
+      
       // Notify all players game started
       io.to(playerInfo.roomCode).emit('game-started', {
-        gameState: game.getGameState()
+        gameState: gameStateData
       });
       
-            // Start game timer (only if not unlimited)      if (game.gameDuration !== null) {        setTimeout(() => {          if (game.gameState === 'playing') {            game.startVoting();            io.to(playerInfo.roomCode).emit('voting-started', {              gameState: game.getGameState()            });          }        }, game.gameDuration);      }
+      // Start game timer (only if not unlimited)
+      if (game.gameDuration !== null) {
+        // Send timer updates every second
+        const timerInterval = setInterval(() => {
+          if (game.gameState === 'playing') {
+            const timeRemaining = game.getTimeRemaining();
+            
+            // Broadcast timer update
+            io.to(playerInfo.roomCode).emit('timer-update', {
+              timeRemaining: timeRemaining
+            });
+            
+            // Check if time is up
+            if (timeRemaining <= 0) {
+              clearInterval(timerInterval);
+              game.startVoting();
+              io.to(playerInfo.roomCode).emit('voting-started', {
+                gameState: game.getGameState()
+              });
+            }
+          } else {
+            clearInterval(timerInterval);
+          }
+        }, 1000);
+        
+        // Fallback timer for the full duration
+        setTimeout(() => {
+          if (game.gameState === 'playing') {
+            game.startVoting();
+            io.to(playerInfo.roomCode).emit('voting-started', {
+              gameState: game.getGameState()
+            });
+          }
+        }, game.gameDuration);
+      }
       
     } catch (error) {
+      console.error('Error in start-game handler:', error);
       socket.emit('error', { message: error.message });
     }
   });
@@ -216,6 +293,39 @@ io.on('connection', (socket) => {
       }
       
     } catch (error) {
+      socket.emit('error', { message: error.message });
+    }
+  });
+
+  socket.on('reset-game', () => {
+    try {
+      console.log('=== RESET GAME EVENT RECEIVED ===');
+      const playerInfo = gameManager.getPlayerInfo(socket.id);
+      console.log('Player info:', playerInfo);
+      if (!playerInfo) {
+        return socket.emit('error', { message: 'Player not found' });
+      }
+      
+      const game = gameManager.getGame(playerInfo.roomCode);
+      console.log('Game found:', !!game);
+      if (!game) {
+        return socket.emit('error', { message: 'Game not found' });
+      }
+      
+      // Any player can reset the game - no host restriction needed
+      console.log('Player requesting reset:', playerInfo.playerName);
+      
+      console.log('Resetting game state...');
+      game.resetGame();
+      console.log('Game state after reset:', game.gameState);
+      
+      // Notify all players that game was reset
+      io.to(playerInfo.roomCode).emit('game-reset', {
+        gameState: game.getGameState()
+      });
+      
+    } catch (error) {
+      console.error('Error in reset-game handler:', error);
       socket.emit('error', { message: error.message });
     }
   });

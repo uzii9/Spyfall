@@ -5,7 +5,7 @@ import socketService from '../services/socket';
 
 function Lobby() {
   const navigate = useNavigate();
-  const { state } = useGame();
+  const { state, actions } = useGame();
 
   useEffect(() => {
     // Redirect if not in a room
@@ -21,16 +21,28 @@ function Lobby() {
   }, [state.roomCode, state.currentPlayer, state.gameState, navigate]);
 
   const handleStartGame = () => {
+    console.log('Start game button clicked');
     socketService.startGame();
   };
 
   const handleLeaveRoom = () => {
+    console.log('Leaving room - disconnecting socket and resetting state');
     socketService.disconnect();
+    actions.leaveGame();
     navigate('/');
   };
 
-  const canStartGame = state.players.length >= 3;
-
+  const canStartGame = state.players.length >= 1; // Temporarily lowered for testing
+  const isHost = state.currentPlayer?.id === state.players[0]?.id;
+  
+  console.log('Lobby state:', {
+    players: state.players,
+    currentPlayer: state.currentPlayer,
+    canStartGame,
+    isHost,
+    gameState: state.gameState
+  });
+  
   if (!state.roomCode) {
     return <div>Loading...</div>;
   }
@@ -41,7 +53,27 @@ function Lobby() {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">Game Lobby</h1>
-                    <div className="flex items-center justify-center space-x-4">            <div className="card inline-block">              <span className="text-sm text-white/60 mr-2">Room Code:</span>              <span className="text-2xl font-mono font-bold tracking-wider">                {state.roomCode}              </span>            </div>            <div className="card inline-block">              <span className="text-sm text-white/60 mr-2">Duration:</span>              <span className="text-lg font-semibold">                {state.gameDurationMinutes === 'unlimited' ? 'Unlimited' : `${state.gameDurationMinutes}min`}              </span>            </div>            <button              onClick={() => navigator.clipboard.writeText(state.roomCode)}              className="btn-secondary py-2 px-3 text-sm"              title="Copy room code"            >              📋 Copy            </button>          </div>
+          <div className="flex items-center justify-center space-x-4">
+            <div className="card inline-block">
+              <span className="text-sm text-white/60 mr-2">Room Code:</span>
+              <span className="text-2xl font-mono font-bold tracking-wider">
+                {state.roomCode}
+              </span>
+            </div>
+            <div className="card inline-block">
+              <span className="text-sm text-white/60 mr-2">Duration:</span>
+              <span className="text-lg font-semibold">
+                {state.gameDurationMinutes === 'unlimited' ? 'Unlimited' : `${state.gameDurationMinutes}min`}
+              </span>
+            </div>
+            <button
+              onClick={() => navigator.clipboard.writeText(state.roomCode)}
+              className="btn-secondary py-2 px-3 text-sm"
+              title="Copy room code"
+            >
+              📋 Copy
+            </button>
+          </div>
         </div>
 
         {/* Players List */}
@@ -120,22 +152,43 @@ function Lobby() {
 
         {/* Game Controls */}
         <div className="space-y-4">
-          {canStartGame ? (
-            <button
-              onClick={handleStartGame}
-              className="btn-success w-full text-lg"
-            >
-              🚀 Start Game
-            </button>
+          {/* Only show start button to host */}
+          {isHost ? (
+            canStartGame ? (
+              <button
+                onClick={handleStartGame}
+                className="btn-success w-full text-lg"
+              >
+                🚀 Start Game
+              </button>
+            ) : (
+              <div className="card text-center">
+                <p className="text-white/60 mb-2">
+                  Need at least 3 players to start
+                </p>
+                <p className="text-sm text-white/40">
+                  Share the room code with your friends!
+                </p>
+              </div>
+            )
           ) : (
-            <div className="card text-center">
-              <p className="text-white/60 mb-2">
-                Need at least 3 players to start
-              </p>
-              <p className="text-sm text-white/40">
-                Share the room code with your friends!
-              </p>
-            </div>
+            /* Show waiting message to non-hosts */
+            state.players.length >= 3 ? (
+              <div className="card text-center">
+                <p className="text-white/60">
+                  Waiting for <strong>{state.players[0]?.name}</strong> to start the game...
+                </p>
+              </div>
+            ) : (
+              <div className="card text-center">
+                <p className="text-white/60 mb-2">
+                  Need at least 3 players to start
+                </p>
+                <p className="text-sm text-white/40">
+                  Share the room code with your friends!
+                </p>
+              </div>
+            )
           )}
           
           <button
@@ -145,15 +198,6 @@ function Lobby() {
             Leave Room
           </button>
         </div>
-
-        {/* Waiting for Host */}
-        {state.players.length >= 3 && state.currentPlayer?.id !== state.players[0]?.id && (
-          <div className="card mt-4 text-center">
-            <p className="text-white/60">
-              Waiting for <strong>{state.players[0]?.name}</strong> to start the game...
-            </p>
-          </div>
-        )}
       </div>
     </div>
   );

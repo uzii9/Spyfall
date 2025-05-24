@@ -1,4 +1,9 @@
-import React, { useState } from 'react';import { useNavigate } from 'react-router-dom';import { useGame } from '../context/GameContext';import apiService from '../services/api';import socketService from '../services/socket';import CustomSelect from './CustomSelect';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useGame } from '../context/GameContext';
+import apiService from '../services/api';
+import socketService from '../services/socket';
+import CustomSelect from './CustomSelect';
 
 function Home() {
   const [playerName, setPlayerName] = useState('');
@@ -8,6 +13,19 @@ function Home() {
   const [customDuration, setCustomDuration] = useState('');
   const navigate = useNavigate();
   const { state, actions } = useGame();
+
+  // Navigate to lobby when player successfully joins a room
+  useEffect(() => {
+    console.log('Home useEffect - checking navigation conditions:', {
+      roomCode: state.roomCode,
+      currentPlayer: state.currentPlayer,
+      gameState: state.gameState
+    });
+    if (state.roomCode && state.currentPlayer && state.gameState === 'waiting') {
+      console.log('Navigating to lobby...');
+      navigate('/lobby');
+    }
+  }, [state.roomCode, state.currentPlayer, state.gameState, navigate]);
 
   const durationOptions = [
     { value: 6, label: '6 minutes' },
@@ -38,15 +56,24 @@ function Home() {
     }
 
     try {
+      console.log('Creating room with duration:', duration);
       actions.setLoading(true);
-      await socketService.connect();
-      const response = await apiService.createRoom(duration);
       
-      // Join the created room
+      console.log('Connecting to socket...');
+      await socketService.connect();
+      console.log('Socket connected successfully');
+      
+      console.log('Creating room via API...');
+      const response = await apiService.createRoom(duration);
+      console.log('Room created:', response);
+      
+      // Join the created room - navigation will happen via useEffect
+      console.log('Joining room:', response.roomCode, 'with name:', playerName.trim());
       socketService.joinRoom(response.roomCode, playerName.trim());
-      navigate('/lobby');
     } catch (error) {
+      console.error('Error creating room:', error);
       actions.setError(error.message);
+      actions.setLoading(false);
     }
   };
 
@@ -68,14 +95,16 @@ function Home() {
       const validation = await apiService.validateRoom(roomCode.trim().toUpperCase());
       if (!validation.success) {
         actions.setError(validation.error);
+        actions.setLoading(false);
         return;
       }
 
       await socketService.connect();
+      // Join room - navigation will happen via useEffect when state updates
       socketService.joinRoom(roomCode.trim().toUpperCase(), playerName.trim());
-      navigate('/lobby');
     } catch (error) {
       actions.setError(error.message);
+      actions.setLoading(false);
     }
   };
 
@@ -141,7 +170,13 @@ function Home() {
                   <label className="block text-sm font-medium text-white/90 mb-2">
                     Game Duration
                   </label>
-                                                                        <CustomSelect                    value={gameDuration}                    onChange={handleDurationChange}                    options={durationOptions}                    disabled={state.loading}                    className="w-full"                  />
+                  <CustomSelect
+                    value={gameDuration}
+                    onChange={handleDurationChange}
+                    options={durationOptions}
+                    disabled={state.loading}
+                    className="w-full"
+                  />
                 </div>
 
                 {/* Custom Duration Input */}

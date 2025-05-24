@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
 import socketService from '../services/socket';
 
 const GameContext = createContext();
@@ -46,17 +46,22 @@ function gameReducer(state, action) {
       };
     
     case 'UPDATE_GAME_STATE':
-      return {
+      console.log('UPDATE_GAME_STATE action payload:', action.payload);
+      console.log('Current state.gameState:', state.gameState);
+      console.log('New gameState from payload:', action.payload?.gameState);
+      const newState = {
         ...state,
-        gameState: action.payload.gameState,
+        gameState: action.payload.gameState || state.gameState,
         players: action.payload.players || state.players,
-        timeRemaining: action.payload.timeRemaining || 0,
+        timeRemaining: action.payload.timeRemaining !== undefined ? action.payload.timeRemaining : state.timeRemaining,
         gameDurationMinutes: action.payload.gameDurationMinutes || state.gameDurationMinutes,
-        winner: action.payload.winner || null,
-        spyId: action.payload.spyId || null,
-        location: action.payload.location || null,
-        votes: action.payload.votes || null,
+        winner: action.payload.winner || state.winner,
+        spyId: action.payload.spyId || state.spyId,
+        location: action.payload.location || state.location,
+        votes: action.payload.votes || state.votes,
       };
+      console.log('New state after UPDATE_GAME_STATE:', newState);
+      return newState;
     
     case 'SET_ROLE':
       return {
@@ -64,10 +69,26 @@ function gameReducer(state, action) {
         playerRole: action.payload,
       };
     
+    case 'REMOVE_PLAYER':
+      return {
+        ...state,
+        players: state.players.filter(p => p.id !== action.payload),
+      };
+    
     case 'RESET_GAME':
+      console.log('Resetting game state (keeping player, room, and players)');
       return {
         ...initialState,
         currentPlayer: state.currentPlayer,
+        roomCode: state.roomCode,
+        players: state.players,
+        gameDurationMinutes: state.gameDurationMinutes,
+      };
+    
+    case 'LEAVE_GAME':
+      console.log('Leaving game - clearing all state');
+      return {
+        ...initialState,
       };
     
     default:
@@ -80,20 +101,16 @@ export function GameProvider({ children }) {
 
   useEffect(() => {
     // Set up socket event listeners
-    socketService.on('joined-room', (data) => {
-      if (data.success) {
-        dispatch({ type: 'SET_PLAYER', payload: data.player });
-        dispatch({ type: 'SET_ROOM', payload: data.roomCode });
-      } else {
-        dispatch({ type: 'SET_ERROR', payload: data.error });
-      }
-    });
+    socketService.on('joined-room', (data) => {      console.log('joined-room event received:', data);      if (data.success) {        console.log('Setting player and room code:', data.player, data.roomCode);        dispatch({ type: 'SET_PLAYER', payload: data.player });        dispatch({ type: 'SET_ROOM', payload: data.roomCode });      } else {        console.error('Failed to join room:', data.error);        dispatch({ type: 'SET_ERROR', payload: data.error });      }    });
 
     socketService.on('player-joined', (data) => {
       dispatch({ type: 'UPDATE_GAME_STATE', payload: data.gameState });
     });
 
     socketService.on('game-started', (data) => {
+      console.log('game-started event received:', data);
+      console.log('data.gameState:', data.gameState);
+      console.log('data.gameState.gameState:', data.gameState?.gameState);
       dispatch({ type: 'UPDATE_GAME_STATE', payload: data.gameState });
     });
 
@@ -113,52 +130,32 @@ export function GameProvider({ children }) {
       dispatch({ type: 'UPDATE_GAME_STATE', payload: data.gameState });
     });
 
+    socketService.on('game-reset', (data) => {
+      console.log('game-reset event received:', data);
+      dispatch({ type: 'UPDATE_GAME_STATE', payload: data.gameState });
+    });
+
     socketService.on('player-left', (data) => {
       // Remove player from current players list
       dispatch({ 
+        type: 'REMOVE_PLAYER', 
+        payload: data.playerId 
+      });
+    });
+
+    socketService.on('timer-update', (data) => {
+      dispatch({ 
         type: 'UPDATE_GAME_STATE', 
-        payload: { 
-          players: state.players.filter(p => p.id !== data.playerId) 
-        } 
+        payload: { timeRemaining: data.timeRemaining } 
       });
     });
 
     socketService.on('error', (data) => {
+      console.error('Socket error received:', data);
       dispatch({ type: 'SET_ERROR', payload: data.message });
     });
 
-    // Cleanup listeners on unmount
-    return () => {
-      socketService.off('joined-room');
-      socketService.off('player-joined');
-      socketService.off('game-started');
-      socketService.off('role-assigned');
-      socketService.off('voting-started');
-      socketService.off('vote-submitted');
-      socketService.off('game-ended');
-      socketService.off('player-left');
-      socketService.off('error');
-    };
+        // Cleanup listeners on unmount    return () => {      socketService.off('joined-room');      socketService.off('player-joined');      socketService.off('game-started');      socketService.off('role-assigned');      socketService.off('voting-started');      socketService.off('vote-submitted');      socketService.off('game-ended');      socketService.off('game-reset');      socketService.off('player-left');      socketService.off('timer-update');      socketService.off('error');    };
   }, []);
 
-  const actions = {
-    setLoading: (loading) => dispatch({ type: 'SET_LOADING', payload: loading }),
-    setError: (error) => dispatch({ type: 'SET_ERROR', payload: error }),
-    clearError: () => dispatch({ type: 'CLEAR_ERROR' }),
-    resetGame: () => dispatch({ type: 'RESET_GAME' }),
-  };
-
-  return (
-    <GameContext.Provider value={{ state, actions }}>
-      {children}
-    </GameContext.Provider>
-  );
-}
-
-export function useGame() {
-  const context = useContext(GameContext);
-  if (!context) {
-    throw new Error('useGame must be used within a GameProvider');
-  }
-  return context;
-} 
+  const actions = {    setLoading: useCallback((loading) => dispatch({ type: 'SET_LOADING', payload: loading }), []),    setError: useCallback((error) => dispatch({ type: 'SET_ERROR', payload: error }), []),    clearError: useCallback(() => dispatch({ type: 'CLEAR_ERROR' }), []),    resetGame: useCallback(() => dispatch({ type: 'RESET_GAME' }), []),    leaveGame: useCallback(() => dispatch({ type: 'LEAVE_GAME' }), []),  };  return (    <GameContext.Provider value={{ state, actions }}>      {children}    </GameContext.Provider>  );}export function useGame() {  const context = useContext(GameContext);  if (!context) {    throw new Error('useGame must be used within a GameProvider');  }  return context;} 

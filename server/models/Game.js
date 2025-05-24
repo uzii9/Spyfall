@@ -53,24 +53,34 @@ class Game {
   }
 
   canStartGame() {
-    return this.players.size >= 3 && this.gameState === 'waiting';
+    return this.players.size >= 1 && this.gameState === 'waiting'; // Temporarily lowered for testing
   }
 
   startGame() {
+    console.log('=== GAME.STARTGAME() CALLED ===');
+    console.log('Current game state:', this.gameState);
+    console.log('Can start game:', this.canStartGame());
+    console.log('Players size:', this.players.size);
+    
     if (!this.canStartGame()) {
+      console.log('Cannot start game - throwing error');
       throw new Error('Cannot start game');
     }
 
+    console.log('Setting game state to playing...');
     this.gameState = 'playing';
     this.gameStartTime = new Date();
+    console.log('Game state set to:', this.gameState);
     
     // Assign spy randomly
     const playerIds = Array.from(this.players.keys());
     this.spyId = playerIds[Math.floor(Math.random() * playerIds.length)];
+    console.log('Spy assigned:', this.spyId);
     
     // Select random location
     const locationNames = Object.keys(LOCATIONS);
     this.location = locationNames[Math.floor(Math.random() * locationNames.length)];
+    console.log('Location selected:', this.location);
     
     // Assign roles
     const availableRoles = [...LOCATIONS[this.location]];
@@ -88,6 +98,8 @@ class Game {
         player.role = availableRoles.splice(roleIndex, 1)[0];
       }
     }
+    
+    console.log('Game start completed. Final state:', this.gameState);
   }
 
   getPlayerRole(playerId) {
@@ -200,6 +212,32 @@ class Game {
   isTimeUp() {
     if (this.gameDuration === null) return false; // Unlimited game
     return this.getTimeRemaining() === 0;
+  }
+
+  resetGame() {
+    console.log('=== GAME.RESETGAME() CALLED ===');
+    console.log('Current game state:', this.gameState);
+    console.log('Players before reset:', this.players.size);
+    
+    // Reset game state to waiting
+    this.gameState = 'waiting';
+    this.gameStartTime = null;
+    this.spyId = null;
+    this.location = null;
+    this.spyGuess = null;
+    this.winner = null;
+    this.votes.clear();
+    
+    // Reset all player game-specific properties but keep them in the room
+    for (const [playerId, player] of this.players.entries()) {
+      player.role = null;
+      player.location = null;
+      player.isSpy = false;
+      player.isReady = false;
+    }
+    
+    console.log('Game reset completed. Final state:', this.gameState);
+    console.log('Players after reset:', this.players.size);
   }
 }
 

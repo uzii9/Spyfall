@@ -52,20 +52,12 @@ class SocketService {
     }
   }
 
-  emit(event, data) {
-    if (this.socket) {
-      this.socket.emit(event, data);
-    }
-  }
+    emit(event, data) {    if (this.socket) {      console.log(`Emitting ${event} event:`, data);      this.socket.emit(event, data);    } else {      console.error('Socket not connected, cannot emit event:', event);    }  }
 
   // Game-specific methods
-  joinRoom(roomCode, playerName) {
-    this.emit('join-room', { roomCode, playerName });
-  }
+      joinRoom(roomCode, playerName) {    console.log('Emitting join-room event:', { roomCode, playerName });    this.emit('join-room', { roomCode, playerName });  }
 
-  startGame() {
-    this.emit('start-game');
-  }
+    startGame() {    console.log('Emitting start-game event');    this.emit('start-game');  }
 
   submitVote(votedForPlayerId) {
     this.emit('submit-vote', { votedForPlayerId });
@@ -77,6 +69,11 @@ class SocketService {
 
   forceVoting() {
     this.emit('force-voting');
+  }
+
+  resetGame() {
+    console.log('Emitting reset-game event');
+    this.emit('reset-game');
   }
 }
 

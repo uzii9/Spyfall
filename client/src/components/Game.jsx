@@ -40,7 +40,7 @@ function Game() {
     loadLocations();
   }, [state.roomCode, state.currentPlayer, state.gameState, navigate]);
 
-    // Timer countdown  useEffect(() => {    if (state.gameState === 'playing') {      const timer = setInterval(() => {        if (state.gameDurationMinutes === 'unlimited') {          setTimeLeft(null);        } else {          // Calculate time remaining from server data          setTimeLeft(state.timeRemaining || 0);        }      }, 1000);      return () => clearInterval(timer);    }  }, [state.gameState, state.timeRemaining, state.gameDurationMinutes]);
+  // Update local timer state when server sends updates  useEffect(() => {    if (state.gameDurationMinutes === 'unlimited') {      setTimeLeft(null);    } else {      setTimeLeft(state.timeRemaining || 0);    }  }, [state.timeRemaining, state.gameDurationMinutes]);
 
   const formatTime = (milliseconds) => {
     const minutes = Math.floor(milliseconds / 60000);
@@ -103,91 +103,7 @@ function Game() {
           </div>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* Role Information */}
-          <div className="card">
-            <h2 className="text-xl font-semibold text-white mb-4">Your Role</h2>
-            
-            {state.playerRole.isSpy ? (
-              <div>
-                <div className="text-center mb-6">
-                  <div className="spy-indicator mb-4">
-                    🕵️ YOU ARE THE SPY
-                  </div>
-                  <p className="text-white/80 mb-4">
-                    You don't know the location. Try to figure it out by asking clever questions 
-                    without revealing that you're the spy!
-                  </p>
-                  
-                  {state.gameState === 'playing' && (
-                    <button
-                      onClick={() => setShowSpyGuess(true)}
-                      className="btn-primary w-full"
-                    >
-                      🎯 Guess Location
-                    </button>
-                  )}
-                </div>
-
-                {/* Location Tracker for Spy */}
-                <div className="bg-white/10 rounded-lg p-4">
-                  <div className="flex justify-between items-center mb-3">
-                    <h4 className="text-sm font-semibold text-white/90 flex items-center">
-                      📍 Location Tracker
-                      <span className="text-xs text-white/60 ml-2">(Click to cross out)</span>
-                    </h4>
-                    {crossedOutLocations.size > 0 && (
-                      <button
-                        onClick={() => setCrossedOutLocations(new Set())}
-                        className="text-xs text-red-400 hover:text-red-300 underline"
-                      >
-                        Clear All
-                      </button>
-                    )}
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-1 text-xs mb-3">
-                    {locations.map((location) => (
-                      <button
-                        key={location}
-                        onClick={() => toggleLocationCrossOut(location)}
-                        className={`text-left p-2 rounded transition-all ${
-                          crossedOutLocations.has(location)
-                            ? 'bg-red-600/30 text-red-300 line-through opacity-50'
-                            : 'bg-white/10 text-white hover:bg-white/20'
-                        }`}
-                      >
-                        {location}
-                      </button>
-                    ))}
-                  </div>
-                  
-                  <p className="text-xs text-white/50">
-                    {crossedOutLocations.size}/{locations.length} locations ruled out
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <div className="text-center">
-                <div className="innocent-indicator mb-4">
-                  👥 INNOCENT PLAYER
-                </div>
-                <div className="space-y-2">
-                  <div className="bg-white/10 rounded-lg p-4">
-                    <p className="text-sm text-white/60 mb-1">Location:</p>
-                    <p className="text-2xl font-bold text-white">{state.playerRole.location}</p>
-                  </div>
-                  <div className="bg-white/10 rounded-lg p-4">
-                    <p className="text-sm text-white/60 mb-1">Your Role:</p>
-                    <p className="text-xl font-semibold text-white">{state.playerRole.role}</p>
-                  </div>
-                </div>
-                <p className="text-white/80 mt-4 text-sm">
-                  Ask questions to find the spy, but don't be too obvious about the location!
-                </p>
-              </div>
-            )}
-          </div>
+                <div className="grid lg:grid-cols-3 md:grid-cols-2 gap-6">          {/* Role Information */}          <div className="card">            <h2 className="text-xl font-semibold text-white mb-4">Your Role</h2>                        {state.playerRole.isSpy ? (              <div className="text-center">                <div className="spy-indicator mb-4">                  🕵️ YOU ARE THE SPY                </div>                <p className="text-white/80 mb-4">                  You don't know the location. Try to figure it out by asking clever questions                   without revealing that you're the spy!                </p>                                {state.gameState === 'playing' && (                  <button                    onClick={() => setShowSpyGuess(true)}                    className="btn-primary w-full"                  >                    🎯 Guess Location                  </button>                )}              </div>            ) : (              <div className="text-center">                <div className="innocent-indicator mb-4">                  👥 INNOCENT PLAYER                </div>                <div className="space-y-2">                  <div className="bg-white/10 rounded-lg p-4">                    <p className="text-sm text-white/60 mb-1">Location:</p>                    <p className="text-2xl font-bold text-white">{state.playerRole.location}</p>                  </div>                  <div className="bg-white/10 rounded-lg p-4">                    <p className="text-sm text-white/60 mb-1">Your Role:</p>                    <p className="text-xl font-semibold text-white">{state.playerRole.role}</p>                  </div>                </div>                <p className="text-white/80 mt-4 text-sm">                  Ask questions to find the spy, but don't be too obvious about the location!                </p>              </div>            )}          </div>          {/* All Locations Reference */}          <div className="card">            <div className="flex justify-between items-center mb-3">              <h4 className="text-sm font-semibold text-white/90 flex items-center">                📍 All Locations                {state.playerRole.isSpy && (                  <span className="text-xs text-white/60 ml-2">(Click to cross out)</span>                )}              </h4>              {state.playerRole.isSpy && crossedOutLocations.size > 0 && (                <button                  onClick={() => setCrossedOutLocations(new Set())}                  className="text-xs text-red-400 hover:text-red-300 underline"                >                  Clear All                </button>              )}            </div>                        <div className="grid grid-cols-2 gap-1 text-xs mb-3">              {locations.map((location) => (                <button                  key={location}                  onClick={() => state.playerRole.isSpy && toggleLocationCrossOut(location)}                  className={`text-left p-2 rounded transition-all ${                    state.playerRole.isSpy                      ? crossedOutLocations.has(location)                        ? 'bg-red-600/30 text-red-300 line-through opacity-50'                        : 'bg-white/10 text-white hover:bg-white/20 cursor-pointer'                      : 'bg-white/10 text-white cursor-default'                  }`}                >                  {location}                </button>              ))}            </div>                        {state.playerRole.isSpy && (              <p className="text-xs text-white/50">                {crossedOutLocations.size}/{locations.length} locations ruled out              </p>            )}          </div>
 
           {/* Players List */}
           <div className="card">
