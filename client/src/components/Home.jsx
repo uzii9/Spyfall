@@ -173,7 +173,7 @@ function Home() {
             )}
 
             {/* Main Form Card */}
-            <div className="card">
+            <div className="card mb-8 lg:mb-0">
               <div className="space-y-6">
                 {/* Player Name Input */}
                 <div>
@@ -198,7 +198,7 @@ function Home() {
                   /* Create Room Mode */
                   <div className="space-y-4">
                     {/* Game Duration Selection */}
-                    <div>
+                    <div className="mb-6 lg:mb-4">
                       <label htmlFor="gameDuration" className="block text-sm font-medium text-white/90 mb-2">
                         Game Duration
                       </label>

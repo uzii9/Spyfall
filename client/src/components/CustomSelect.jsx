@@ -52,7 +52,24 @@ function CustomSelect({ value, onChange, options, disabled, className = '' }) {
         </div>
       </button>
 
-            {isOpen && (        <div className="absolute z-50 w-full mt-1 bg-gray-800 border border-white/30 rounded-lg shadow-xl overflow-hidden">          {options.map((option) => (            <button              key={option.value}              type="button"              onClick={() => handleSelect(option.value)}              className={`                w-full px-4 py-3 text-left text-white hover:bg-primary-600 transition-all duration-150                ${value === option.value ? 'bg-primary-700' : 'hover:bg-primary-600'}                first:rounded-t-lg last:rounded-b-lg              `}            >              {option.label}            </button>          ))}        </div>      )}
+      {isOpen && (
+        <div className="absolute z-[9999] w-full mt-1 bg-gray-800 border border-white/30 rounded-lg shadow-2xl overflow-hidden max-h-64 overflow-y-auto">
+          {options.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => handleSelect(option.value)}
+              className={`
+                w-full px-4 py-3 text-left text-white hover:bg-primary-600 transition-all duration-150
+                ${value === option.value ? 'bg-primary-700' : 'hover:bg-primary-600'}
+                first:rounded-t-lg last:rounded-b-lg
+              `}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
