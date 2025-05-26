@@ -130,8 +130,8 @@ class Game {
       throw new Error('Only the spy can guess the location');
     }
     
-    if (this.gameState !== 'playing') {
-      throw new Error('Game is not in playing state');
+    if (this.gameState !== 'playing' && this.gameState !== 'voting') {
+      throw new Error('Game is not in playing or voting state');
     }
     
     console.log('=== SPY GUESS SUBMITTED ===');
@@ -228,7 +228,7 @@ class Game {
   }
 
   getTimeRemaining() {
-    if (!this.gameStartTime || this.gameState !== 'playing' || this.gameDuration === null) {
+    if (!this.gameStartTime || (this.gameState !== 'playing' && this.gameState !== 'voting') || this.gameDuration === null) {
       return this.gameDuration; // Return null for unlimited, or full duration if not started
     }
     

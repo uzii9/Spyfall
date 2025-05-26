@@ -177,7 +177,7 @@ io.on('connection', (socket) => {
       if (game.gameDuration !== null) {
         // Send timer updates every second
         const timerInterval = setInterval(() => {
-          if (game.gameState === 'playing') {
+          if (game.gameState === 'playing' || game.gameState === 'voting') {
             const timeRemaining = game.getTimeRemaining();
             
             // Broadcast timer update
@@ -185,11 +185,19 @@ io.on('connection', (socket) => {
               timeRemaining: timeRemaining
             });
             
-            // Check if time is up
-            if (timeRemaining <= 0) {
-              clearInterval(timerInterval);
+            // Check if time is up and we're still in playing state
+            if (timeRemaining <= 0 && game.gameState === 'playing') {
               game.startVoting();
               io.to(playerInfo.roomCode).emit('voting-started', {
+                gameState: game.getGameState()
+              });
+            }
+            
+            // If time is up during voting, end the game
+            if (timeRemaining <= 0 && game.gameState === 'voting') {
+              clearInterval(timerInterval);
+              game.endGame();
+              io.to(playerInfo.roomCode).emit('game-ended', {
                 gameState: game.getGameState()
               });
             }
@@ -203,6 +211,11 @@ io.on('connection', (socket) => {
           if (game.gameState === 'playing') {
             game.startVoting();
             io.to(playerInfo.roomCode).emit('voting-started', {
+              gameState: game.getGameState()
+            });
+          } else if (game.gameState === 'voting') {
+            game.endGame();
+            io.to(playerInfo.roomCode).emit('game-ended', {
               gameState: game.getGameState()
             });
           }
